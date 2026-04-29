@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: ziphub-server
+    env: python
+    # 実行コマンド: スクリプトのファイル名が server.py の場合
+    buildCommand: "mkdir -p repos"
+    startCommand: "python server.py"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.0
+      - key: PORT
+        value: 5000
+    # データの永続化が必要な場合は以下のディスク設定を追加
+    disk:
+      name: repos-storage
+      mountPath: /repos
+      sizeGB: 1
