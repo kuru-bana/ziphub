@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ZipHub - Zipファイルをリポジトリのように閲覧</title>
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-left">
+      <a href="/" class="logo-link" id="home-link">
+        <svg class="logo" height="32" viewBox="0 0 16 16" width="32" aria-hidden="true">
+          <path fill="#fff" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+        </svg>
+      </a>
+      <span class="brand">ZipHub</span>
+      <span class="topbar-repo hidden" id="topbar-repo">
+        <span class="divider">/</span>
+        <a id="repo-name-link" class="repo-name" href="#">no-repository</a>
+      </span>
+    </div>
+    <div class="topbar-right">
+      <label class="upload-btn" for="zip-input">
+        <svg height="16" viewBox="0 0 16 16" width="16" aria-hidden="true">
+          <path fill="currentColor" d="M8.75 1.75V6h3.5L8 10.5 3.75 6h3.5V1.75h1.5zM2 13h12v1.5H2V13z"/>
+        </svg>
+        Zipをアップロード
+      </label>
+      <input type="file" id="zip-input" accept=".zip" hidden />
+    </div>
+  </header>
+
+  <div id="empty-state" class="empty-state">
+    <div class="empty-wrap">
+      <div class="empty-card">
+        <svg height="64" viewBox="0 0 16 16" width="64" aria-hidden="true">
+          <path fill="#57606a" d="M2 1.75C2 .784 2.784 0 3.75 0h5.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0112.25 16h-8.5A1.75 1.75 0 012 14.25V1.75zm1.75-.25a.25.25 0 00-.25.25v12.5c0 .138.112.25.25.25h8.5a.25.25 0 00.25-.25V6h-2.75A1.75 1.75 0 018 4.25V1.5H3.75zm5.75.56v2.19c0 .138.112.25.25.25h2.19L9.5 2.06z"/>
+        </svg>
+        <h2>Zipファイルをドロップまたはアップロード</h2>
+        <p>ブラウザ内でzipを展開し、リポジトリのように閲覧できます。アップロードしたzipはサーバーに保存され、URL指定で再度開けます。</p>
+        <label class="upload-btn primary" for="zip-input-2">ファイルを選択</label>
+        <input type="file" id="zip-input-2" accept=".zip" hidden />
+      </div>
+
+      <div id="saved-repos" class="saved-repos hidden">
+        <h3>保存済みリポジトリ</h3>
+        <ul id="saved-repos-list"></ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="loading-state" class="empty-state hidden">
+    <div class="empty-card">
+      <h2 id="loading-message">読み込み中...</h2>
+      <p>サーバーからzipを取得しています</p>
+    </div>
+  </div>
+
+  <main id="repo-view" class="repo-view hidden">
+    <!-- Repo header -->
+    <div class="repo-header">
+      <div class="repo-title">
+        <svg class="repo-icon" height="16" viewBox="0 0 16 16" width="16" aria-hidden="true">
+          <path fill="currentColor" d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 110-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5v-9zm10.5-1V9h-8c-.356 0-.694.074-1 .208V2.5a1 1 0 011-1h8z"/>
+        </svg>
+        <a id="repo-title-name" class="repo-name-strong" href="#">repository</a>
+        <span class="visibility-badge">Local</span>
+      </div>
+    </div>
+
+    <!-- Subnav: branch, file count, search -->
+    <nav class="subnav">
+      <div class="subnav-left">
+        <button class="branch-btn">
+          <svg height="16" viewBox="0 0 16 16" width="16"><path fill="currentColor" d="M11.75 2.5a.75.75 0 100 1.5.75.75 0 000-1.5zm-2.25.75a2.25 2.25 0 113 2.122V6A2.5 2.5 0 0110 8.5H6a1 1 0 00-1 1v1.128a2.251 2.251 0 11-1.5 0V5.372a2.25 2.25 0 111.5 0v1.836A2.492 2.492 0 016 7h4a1 1 0 001-1v-.628A2.25 2.25 0 019.5 3.25zM4.25 12a.75.75 0 100 1.5.75.75 0 000-1.5zM3.5 3.25a.75.75 0 111.5 0 .75.75 0 01-1.5 0z"/></svg>
+          <span>main</span>
+        </button>
+        <span class="muted" id="file-count"></span>
+      </div>
+      <div class="subnav-right">
+        <input type="text" id="search-input" placeholder="ファイル名で検索..." />
+      </div>
+    </nav>
+
+    <div class="breadcrumbs" id="breadcrumbs"></div>
+
+    <div class="content-area">
+      <div id="dir-view" class="dir-view"></div>
+      <div id="file-view" class="file-view hidden"></div>
+    </div>
+
+    <section id="readme-section" class="readme-section hidden">
+      <div class="readme-header">
+        <svg height="16" viewBox="0 0 16 16" width="16"><path fill="currentColor" d="M0 1.75A.75.75 0 01.75 1h4.253c1.227 0 2.317.59 3 1.501A3.744 3.744 0 0111.006 1h4.245a.75.75 0 01.75.75v10.5a.75.75 0 01-.75.75h-4.507a2.25 2.25 0 00-1.591.659l-.622.621a.75.75 0 01-1.06 0l-.622-.621A2.25 2.25 0 005.258 13H.75a.75.75 0 01-.75-.75V1.75z"/></svg>
+        <span>README.md</span>
+      </div>
+      <div id="readme-content" class="markdown-body"></div>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>
